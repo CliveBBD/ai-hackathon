@@ -1,7 +1,7 @@
 import { getContextFromMCP } from "./mcpClient";
 import { callLLM } from "./llmClient";
 
-export async function generatePrompt(action: string) {
+export const generatePrompt = async (action: string) => {
   const context = await getContextFromMCP();
   const prompt = `The user performed action: ${action}.
 Here is the context:\n${context}`;
