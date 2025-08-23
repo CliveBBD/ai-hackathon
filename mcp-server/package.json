@@ -1,0 +1,28 @@
+{
+  "name": "mcp-server",
+  "version": "0.0.1",
+  "description": "A simple MCP server in TypeScript",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "server:inspect": "npx @modelcontextprotocol/inspector npm run start"
+  },
+  "keywords": [
+    "mcp",
+    "server",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}
