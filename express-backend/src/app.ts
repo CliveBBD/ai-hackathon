@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from "express";
 import promptsRouter from "./routes/prompts";
 
