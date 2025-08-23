@@ -21,14 +21,11 @@ class RecruitmentMcpServer {
       }
     );
 
-    this.setupResources();
     this.setupTools();
     this.setupErrorHandling();
   }
 
-  private setupResources(): void {
 
-  }
 
   private setupTools(): void {
     this.server.tool(

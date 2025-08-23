@@ -1,5 +1,5 @@
 {
-  "name": "mcp-server",
+  "name": "@ai-hackathon/mcp-server",
   "version": "0.0.1",
   "description": "A simple MCP server in TypeScript",
   "main": "dist/server.js",
