@@ -12,13 +12,16 @@ export interface UserProfile {
   email_verified: boolean
 }
 
-passport.serializeUser((user: Express.User, done: DoneCallback) => {
-  done(null, user);
+passport.serializeUser((user: any, done: DoneCallback) => {
+  done(null, user._id);
 });
-passport.deserializeUser(async (user: Express.User, done: DoneCallback) => {
-  console.log(user);
-  const currentUser = await User.findOne(user);
-  return done(null, currentUser);
+passport.deserializeUser(async (id: string, done: DoneCallback) => {
+  try {
+    const currentUser = await User.findById(id);
+    return done(null, currentUser);
+  } catch (error) {
+    return done(error, null);
+  }
 });
 
 passport.use(
@@ -29,17 +32,37 @@ passport.use(
       callbackURL: process.env.GOOGLE_CALLBACK_URL!,
     },
     async (accessToken, refreshToken, profile, done) => {
-      const userProfile: UserProfile = profile._json as UserProfile;
-      const existingUser = await User.findOne({ googleId: userProfile.sub });
-      if (existingUser) return done(null, existingUser);
+      try {
+        const userProfile: UserProfile = profile._json as UserProfile;
+        
+        // Check for existing user by googleId or email
+        const existingUser = await User.findOne({
+          $or: [
+            { googleId: userProfile.sub },
+            { email: userProfile.email }
+          ]
+        });
+        
+        if (existingUser) {
+          // Update googleId if user exists but doesn't have it
+          if (!existingUser.googleId) {
+            existingUser.googleId = userProfile.sub;
+            await existingUser.save();
+          }
+          return done(null, existingUser);
+        }
 
-      const user = new User({
-        googleId: userProfile.sub,
-        name: userProfile.name,
-        email: userProfile.email
-      });
-      await user.save();
-      done(null, user);
+        // Create new user
+        const user = new User({
+          googleId: userProfile.sub,
+          name: userProfile.name,
+          email: userProfile.email
+        });
+        await user.save();
+        done(null, user);
+      } catch (error) {
+        done(error, null);
+      }
     }
   )
 );
