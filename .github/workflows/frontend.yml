@@ -25,15 +25,22 @@ jobs:
         working-directory: ./frontend
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
-
-      - name: Upload to Azure Storage
+      - name: Delete batch
         uses: azure/CLI@v1
         with:
           azcliversion: 2.30.0
           inlineScript: |
             az storage blob delete-batch \
             --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
-            --source ${{ secrets.WEB_CONTAINER }} &&
+            --source ${{ secrets.WEB_CONTAINER }}
+        env:
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+
+      - name: Upload to Azure Storage
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
             az storage blob upload-batch \
               --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
               --auth-mode key \
