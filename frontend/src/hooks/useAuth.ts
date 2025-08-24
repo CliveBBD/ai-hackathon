@@ -20,6 +20,7 @@ interface User {
   googleId: string;
   name: string;
   email: string;
+  role: string;
 }
 
 const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}` || 'http://localhost:3001/api';

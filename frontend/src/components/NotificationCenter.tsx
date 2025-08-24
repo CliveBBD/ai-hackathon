@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { Bell, Check, X, Calendar, Star, BookOpen, Briefcase } from "lucide-react";
-import { apiService } from "../services/api";
+import apiService from "../services/api";
 import { useToast } from "../hooks/use-toast";
 
 interface Notification {
@@ -53,7 +53,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
 
   const fetchUnreadCount = async () => {
     try {
-      const data = await apiService.getUnreadCount(userId);
+      const data = await apiService.getUnreadNotificationCount(userId);
       setUnreadCount(data.count);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
@@ -62,7 +62,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await apiService.markNotificationRead(notificationId);
+      await apiService.markNotificationAsRead(notificationId);
       setNotifications(notifications.map(n => 
         n._id === notificationId ? { ...n, read: true } : n
       ));
@@ -78,7 +78,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
 
   const markAllAsRead = async () => {
     try {
-      await apiService.markAllNotificationsRead(userId);
+      await apiService.markAllNotificationsAsRead(userId);
       setNotifications(notifications.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
       toast({

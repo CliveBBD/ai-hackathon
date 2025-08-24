@@ -50,6 +50,7 @@ export default function ApplicantDashboard() {
       // Get current user
       const currentUser = await apiService.getCurrentUser();
       setUser(currentUser);
+      console.log("Current user: " + currentUser)
 
       // Get user profile
       const profileData = await apiService.getProfile(currentUser._id);
