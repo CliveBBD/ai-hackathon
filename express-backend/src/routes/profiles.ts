@@ -1,8 +1,6 @@
 import { Router } from "express";
 import Profile from "../models/profile.model";
 import User from "../models/user.model";
-
-const router = Router();
 import { isAuthenticated } from "../middleware/auth.middleware";
 
 const router = Router();
