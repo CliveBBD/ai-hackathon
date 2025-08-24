@@ -1,17 +1,13 @@
 import { AzureOpenAI } from "openai";
 import { IApplicantProfile } from '../models/Profile';
 import { IProject } from '../models/Project';
+import client from "./llmClient";
 
 class AzureOpenAIService {
   private client: AzureOpenAI;
 
   constructor() {
-    this.client = new AzureOpenAI({
-      endpoint: process.env.AZURE_OPENAI_ENDPOINT!,
-      apiKey: process.env.AZURE_OPENAI_API_KEY!,
-      deployment: "gpt-4o",
-      apiVersion: "2024-04-01-preview"
-    });
+    this.client = client;
   }
 
   async calculateMatchScore(applicant: IApplicantProfile, project: IProject): Promise<{
