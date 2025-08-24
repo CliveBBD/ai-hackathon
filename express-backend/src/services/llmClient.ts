@@ -26,3 +26,5 @@ export const callLLM = async (prompt: string): Promise<string> => {
     return `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
   }
 }
+
+export default client;
