@@ -1,5 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
+import User from "../models/user.model";
+import Profile from "../models/profile.model";
 
 const router = Router();
 
@@ -8,10 +10,18 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/login",
-    successRedirect: process.env.FRONTEND_URI || "http://localhost:8080/",
+    failureRedirect: process.env.FRONTEND + "/auth" || "http://localhost:8080/auth",
+    successRedirect: process.env.FRONTEND + "/role-selection" || "http://localhost:8080/role-selection",
   })
 );
+
+router.get("/status", async (req, res) => {
+  if (req.user) {
+    res.json(req.user);
+  } else {
+    res.status(401).json({ error: "Not authenticated" });
+  }
+});
 
 router.get("/logout", (req, res) => {
   req.logout((err) => {
