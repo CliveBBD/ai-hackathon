@@ -27,7 +27,7 @@ jobs:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
       - name: Upload to Azure Storage
-        uses: azure/CLI@v1
+        uses: azure/cli@v2
         with:
           azcliversion: 2.30.0
           inlineScript: |
