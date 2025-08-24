@@ -11,8 +11,8 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: process.env.FRONTEND + "/auth" || "http://localhost:8080/auth",
-    successRedirect: process.env.FRONTEND + "/role-selection" || "http://localhost:8080/role-selection",
+    failureRedirect: process.env.FRONTEND! + "/auth",
+    successRedirect: process.env.FRONTEND! + "/role-selection",
   })
 );
 
