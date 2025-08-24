@@ -32,7 +32,7 @@ jobs:
           azcliversion: 2.30.0
           inlineScript: |
             az storage blob delete-batch \
-            --account-name mystorage \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
             --source ${{ secrets.WEB_CONTAINER }} &&
             az storage blob upload-batch \
               --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
