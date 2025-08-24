@@ -54,3 +54,5 @@ export const callLLM = async (prompt: string): Promise<string> => {
     throw new Error('Azure OpenAI API call failed');
   }
 }
+
+export default client;

@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from "express";
-import promptsRouter from "./routes/prompts";
 import passport from "passport";
 import './config/passport';
 import session from "express-session";
@@ -51,11 +50,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/prompts", promptsRouter);
-
 // Routes
-app.use('/auth', authRouter);
-app.use("/cv", cvRouter);
+app.use('/api/auth', authRouter);
+app.use("/api/cv", cvRouter);
 app.use('/api/profiles', profilesRouter);
 app.use('/api/projects', projectRoutes);
 app.use('/api/applications', applicationRoutes);
