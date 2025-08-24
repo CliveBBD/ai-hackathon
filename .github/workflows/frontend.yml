@@ -34,7 +34,7 @@ jobs:
             az storage blob upload-batch \
               --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
               --auth-mode key \
-              --destination $web \
+              --destination ${{ secrets.WEB_CONTAINER }} \
               --source ./frontend/dist \
               --overwrite
         env:
