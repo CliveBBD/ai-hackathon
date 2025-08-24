@@ -25,9 +25,9 @@ export default function EditProfileView() {
 
   const fetchProfile = async () => {
     try {
-      const data = await apiService.getProfile(user._id);
+      const data = await apiService.getProfile(user?._id || '');
       setProfile(data.profile || {
-        full_name: user.name || '',
+        full_name: user?.name || '',
         location: '',
         bio: '',
         linkedin_url: '',
@@ -57,7 +57,7 @@ export default function EditProfileView() {
   const removeSkill = (index: number) => {
     setProfile({
       ...profile,
-      skills: profile.skills.filter((_, i) => i !== index)
+      skills: profile.skills.filter((_: any, i: any) => i !== index)
     });
   };
 
@@ -155,7 +155,7 @@ export default function EditProfileView() {
               </Button>
             </div>
             <div className="space-y-3">
-              {profile.skills.map((skill, index) => (
+              {profile.skills.map((skill: any, index: any) => (
                 <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-2">

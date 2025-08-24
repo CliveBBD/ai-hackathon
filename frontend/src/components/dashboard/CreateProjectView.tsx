@@ -16,7 +16,7 @@ export default function CreateProjectView() {
     company: "",
     location: "",
     salary_range: { min: 0, max: 0, currency: "ZAR" },
-    required_skills: [],
+    required_skills: [''],
     experience_level: "mid",
     priority: "medium",
     status: "draft"
