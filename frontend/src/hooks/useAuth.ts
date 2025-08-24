@@ -20,6 +20,7 @@ interface User {
   googleId: string;
   name: string;
   email: string;
+  role?:'recruiter' | 'applicant';
 }
 
 const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}`;
@@ -125,6 +126,6 @@ export const useAuth = () => {
     createProfile,
     signOut,
     isAuthenticated: !!user,
-    hasProfile: !!profile
+    hasProfile: !!profile,
   };
 };
