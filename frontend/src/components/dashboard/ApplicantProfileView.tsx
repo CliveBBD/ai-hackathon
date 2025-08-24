@@ -8,7 +8,7 @@ import { Badge } from "../ui/badge";
 import { useToast } from "../../hooks/use-toast";
 import { useAuth } from "../../hooks/useAuth";
 import apiService from "../../services/api";
-import { User, Mail, Phone, MapPin, Github, Linkedin, Briefcase, GraduationCap, Award, Plus, X } from "lucide-react";
+import { User, Linkedin, GraduationCap, Award, Plus, X } from "lucide-react";
 
 export default function ApplicantProfileView() {
   const { toast } = useToast();
@@ -24,12 +24,12 @@ export default function ApplicantProfileView() {
 
   const fetchProfile = async () => {
     try {
-      const data = await apiService.getProfile(user._id);
+      const data = await apiService.getProfile(user?._id || '');
       const profileData = data.profile;
       
       setProfile({
-        full_name: profileData?.full_name || user.name || '',
-        email: profileData?.email || user.email || '',
+        full_name: profileData?.full_name || user?.name || '',
+        email: profileData?.email || user?.email || '',
         location: profileData?.location || 'Not specified',
         bio: profileData?.bio || '',
         linkedin_url: profileData?.linkedin_url || '',
@@ -62,7 +62,7 @@ export default function ApplicantProfileView() {
   };
 
   const removeSkill = (skill: string) => {
-    setProfile({ ...profile, skills: profile.skills?.filter(s => s !== skill) || [] });
+    setProfile({ ...profile, skills: profile.skills?.filter((s: any) => s !== skill) || [] });
   };
 
   const addCertification = () => {
@@ -73,7 +73,7 @@ export default function ApplicantProfileView() {
   };
 
   const removeCertification = (cert: string) => {
-    setProfile({ ...profile, certifications: profile.certifications?.filter(c => c !== cert) || [] });
+    setProfile({ ...profile, certifications: profile.certifications?.filter((c: any) => c !== cert) || [] });
   };
 
   const handleSave = async () => {
@@ -260,7 +260,7 @@ export default function ApplicantProfileView() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {profile.skills?.map((skill) => (
+              {profile.skills?.map((skill: any) => (
                 <Badge key={skill} variant="secondary" className="flex items-center gap-1">
                   {skill}
                   <X
@@ -293,7 +293,7 @@ export default function ApplicantProfileView() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {profile.certifications?.map((cert) => (
+              {profile.certifications?.map((cert: any) => (
                 <Badge key={cert} variant="outline" className="flex items-center gap-1">
                   {cert}
                   <X

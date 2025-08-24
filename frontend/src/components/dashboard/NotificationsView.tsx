@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "../ui/card";
-import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Bell, Check, Calendar, Star, BookOpen, Briefcase, CheckCircle } from "lucide-react";
+import { Bell, Calendar,  BookOpen, Briefcase } from "lucide-react";
 
 export default function NotificationsView() {
   const [notifications, setNotifications] = useState([

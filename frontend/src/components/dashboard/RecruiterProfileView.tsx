@@ -7,7 +7,7 @@ import { Textarea } from "../ui/textarea";
 import { useToast } from "../../hooks/use-toast";
 import { useAuth } from "../../hooks/useAuth";
 import apiService from "../../services/api";
-import { Building2, Mail, Phone, MapPin, Globe, Users, Award } from "lucide-react";
+import { Building2, Users, Award } from "lucide-react";
 
 export default function RecruiterProfileView() {
   const { toast } = useToast();
@@ -23,12 +23,12 @@ export default function RecruiterProfileView() {
 
   const fetchProfile = async () => {
     try {
-      const data = await apiService.getProfile(user._id);
+      const data = await apiService.getProfile(user?._id || '');
       const profileData = data.profile;
       
       setProfile({
-        full_name: profileData?.full_name || user.name || '',
-        email: profileData?.email || user.email || '',
+        full_name: profileData?.full_name || user?.name || '',
+        email: profileData?.email || user?.email || '',
         company: profileData?.company || '',
         position: profileData?.position || 'Not specified',
         location: profileData?.location || 'Not specified',

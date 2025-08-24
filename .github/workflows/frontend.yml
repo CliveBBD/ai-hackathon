@@ -21,7 +21,7 @@ jobs:
         working-directory: ./frontend
 
       - name: Build Vite app
-        run: npm run build --mode production
+        run: npm run build
         working-directory: ./frontend
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}

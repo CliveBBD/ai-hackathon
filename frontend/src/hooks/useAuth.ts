@@ -23,7 +23,7 @@ interface User {
   role?:'recruiter' | 'applicant';
 }
 
-const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}`;
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}` || 'http://localhost:3001/api';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
