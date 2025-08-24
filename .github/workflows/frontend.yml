@@ -31,11 +31,13 @@ jobs:
         with:
           azcliversion: 2.30.0
           inlineScript: |
+            az storage blob delete-batch \
+              --account-name mystorage \
+              --source ${{ secrets.WEB_CONTAINER }} &&
             az storage blob upload-batch \
               --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
               --auth-mode key \
               --destination ${{ secrets.WEB_CONTAINER }} \
-              --source ./frontend/dist \
-              --overwrite
+              --source ./frontend/dist
         env:
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
