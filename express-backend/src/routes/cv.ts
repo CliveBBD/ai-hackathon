@@ -3,15 +3,10 @@ import multer from "multer";
 import { extractCVData } from "../services/cvService";
 import { uploadToBlob } from "../services/storageService";
 import Profile from "../models/profile.model";
+import { isAuthenticated } from "../middleware/auth.middleware";
 
 const cvRouter = Router();
-
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
+cvRouter.use(isAuthenticated)
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -22,7 +17,7 @@ const upload = multer({
   }
 });
 
-cvRouter.post("/upload", requireAuth, upload.any() as any, async (req: any, res: any) => {
+cvRouter.post("/upload", upload.any() as any, async (req: any, res: any) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: "No CV file uploaded" });
