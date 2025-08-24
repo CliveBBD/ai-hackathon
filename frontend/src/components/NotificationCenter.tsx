@@ -53,7 +53,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
 
   const fetchUnreadCount = async () => {
     try {
-      const data = await apiService.getUnreadNotificationCount(userId);
+     const data = await apiService.getUnreadNotificationCount(userId);
       setUnreadCount(data.count);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
@@ -62,7 +62,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await apiService.markNotificationAsRead(notificationId);
+     await apiService.markNotificationAsRead(notificationId);
       setNotifications(notifications.map(n => 
         n._id === notificationId ? { ...n, read: true } : n
       ));
