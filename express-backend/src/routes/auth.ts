@@ -1,5 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
+import User from "../models/user.model";
+import Profile from "../models/profile.model";
 
 const router = Router();
 

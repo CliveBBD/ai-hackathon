@@ -1,6 +1,8 @@
 import { Router } from "express";
 import Profile from "../models/profile.model";
 import User from "../models/user.model";
+
+const router = Router();
 import { isAuthenticated } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -22,6 +24,11 @@ router.get("/:userId", async (req, res) => {
 // Create user profile
 router.post("/", async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+
     const { role, full_name, company } = req.body;
     const userId = (req.user as any)._id;
     
