@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { generatePrompt } from "../services/promptService";
+import { isAuthenticated } from "../middleware/auth.middleware";
 
 const promptsRouter = Router();
+promptsRouter.use(isAuthenticated);
 
 promptsRouter.post("/", async (req, res) => {
   try {
