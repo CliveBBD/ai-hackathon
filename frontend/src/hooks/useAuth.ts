@@ -22,6 +22,8 @@ interface User {
   email: string;
 }
 
+const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}`;
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -33,7 +35,7 @@ export const useAuth = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/auth/status', {
+      const response = await fetch(`${API_BASE_URL}/auth/status`, {
         credentials: 'include'
       });
 
@@ -54,7 +56,7 @@ export const useAuth = () => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/profiles/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/profiles/${userId}`, {
         credentials: 'include'
       });
 
@@ -68,7 +70,7 @@ export const useAuth = () => {
   };
 
   const signInWithGoogle = () => {
-    window.location.href = 'http://localhost:8000/auth/google';
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   const createProfile = async (role: 'recruiter' | 'applicant', additionalData?: {
@@ -76,7 +78,7 @@ export const useAuth = () => {
     company?: string;
   }) => {
     try {
-      const response = await fetch('http://localhost:8000/api/profiles', {
+      const response = await fetch(`${API_BASE_URL}/profiles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +106,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      await fetch('http://localhost:8000/auth/logout', {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
         credentials: 'include'
       });
       setUser(null);

@@ -10,7 +10,7 @@ app.get("/health", (req, res) => {
 });
 
 mongoose
-  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/")
+  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/afroServe")
   .then(() => {
     console.log("MongoDB connected");
     app.listen(PORT, () => {

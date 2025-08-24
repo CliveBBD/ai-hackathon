@@ -1,20 +1,14 @@
 import express from 'express';
 import { ApplicantProfile, RecruiterProfile } from '../models/Profile';
 import User from '../models/User';
-import azureOpenAI from '../services/azureOpenAI';
+import { isAuthenticated } from '../middleware/auth.middleware';
+import Profile from "../models/profile.model";
 
 const router = express.Router();
-
-// Middleware to check authentication
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  next();
-};
+router.use(isAuthenticated);
 
 // Create profile (general endpoint)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { role, ...profileData } = req.body;
     
@@ -109,7 +103,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // Get user profile
-router.get('/:userId', requireAuth, async (req, res) => {
+router.get('/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
@@ -130,7 +124,7 @@ router.get('/:userId', requireAuth, async (req, res) => {
 });
 
 // Create/Update applicant profile
-router.post('/applicant', requireAuth, async (req, res) => {
+router.post('/applicant', async (req, res) => {
   try {
     const user = req.user as any;
     
@@ -177,7 +171,7 @@ router.post('/applicant', requireAuth, async (req, res) => {
 });
 
 // Create/Update recruiter profile
-router.post('/recruiter', requireAuth, async (req, res) => {
+router.post('/recruiter', async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -192,12 +186,11 @@ router.post('/recruiter', requireAuth, async (req, res) => {
     }
 
     // Update user profile completion status
-    await User.findByIdAndUpdate(user._id, { 
+    await User.findByIdAndUpdate(userId, { 
       profile_completed: true,
       updated_at: new Date()
     });
-
-    res.json(profile);
+    res.send("Successfully updated user");
   } catch (error) {
     console.error('Recruiter profile error:', error);
     res.status(500).json({ error: 'Failed to create/update recruiter profile' });
@@ -205,7 +198,7 @@ router.post('/recruiter', requireAuth, async (req, res) => {
 });
 
 // Update user role
-router.put('/role', requireAuth, async (req, res) => {
+router.put('/role', async (req, res) => {
   try {
     const user = req.user as any;
     const { role } = req.body;
