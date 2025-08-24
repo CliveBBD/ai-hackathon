@@ -67,7 +67,7 @@ class AzureOpenAIService {
       const content = response.choices[0]?.message?.content;
       if (!content) throw new Error('No response from AI');
 
-      return JSON.parse(content);
+      return this.safeJsonParse(content, this.fallbackMatchCalculation(applicant, project));
     } catch (error) {
       console.error('AI matching error:', error);
       // Fallback calculation
@@ -122,13 +122,13 @@ class AzureOpenAIService {
         model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.4,
-        max_tokens: 1500,
+        max_tokens: 3000,
       });
 
       const content = response.choices[0]?.message?.content;
       if (!content) throw new Error('No response from AI');
 
-      return JSON.parse(content);
+      return this.safeJsonParse(content, { recommendations: [] });
     } catch (error) {
       console.error('AI skill recommendation error:', error);
       return { recommendations: [] };
@@ -184,7 +184,7 @@ class AzureOpenAIService {
       const content = response.choices[0]?.message?.content;
       if (!content) throw new Error('No response from AI');
 
-      return JSON.parse(content);
+      return this.safeJsonParse(content, { recommendations: [] });
     } catch (error) {
       console.error('AI job recommendation error:', error);
       return { recommendations: [] };
@@ -242,6 +242,71 @@ class AzureOpenAIService {
     score += certScore;
 
     return { score: Math.round(score), insights };
+  }
+
+  private cleanJsonResponse(content: string): string {
+    // Remove markdown code blocks
+    let cleaned = content.replace(/```json\s*|```\s*$/g, '').trim();
+    
+    // Remove any text before the first { or [
+    const jsonStart = Math.min(
+      cleaned.indexOf('{') === -1 ? Infinity : cleaned.indexOf('{'),
+      cleaned.indexOf('[') === -1 ? Infinity : cleaned.indexOf('[')
+    );
+    
+    if (jsonStart !== Infinity && jsonStart > 0) {
+      cleaned = cleaned.substring(jsonStart);
+    }
+    
+    // Remove any text after the last } or ]
+    const lastBrace = cleaned.lastIndexOf('}');
+    const lastBracket = cleaned.lastIndexOf(']');
+    const jsonEnd = Math.max(lastBrace, lastBracket);
+    
+    if (jsonEnd !== -1 && jsonEnd < cleaned.length - 1) {
+      cleaned = cleaned.substring(0, jsonEnd + 1);
+    }
+    
+    return cleaned;
+  }
+
+  private safeJsonParse(content: string, fallback: any): any {
+    try {
+      const cleaned = this.cleanJsonResponse(content);
+      
+      // Check if JSON appears complete
+      if (!this.isValidJsonStructure(cleaned)) {
+        console.warn('Incomplete JSON detected, using fallback');
+        return fallback;
+      }
+      
+      return JSON.parse(cleaned);
+    } catch (error) {
+      console.error('JSON parse error:', error);
+      console.error('Content:', content.substring(0, 500) + '...');
+      return fallback;
+    }
+  }
+
+  private isValidJsonStructure(content: string): boolean {
+    const trimmed = content.trim();
+    
+    // Check if it starts and ends properly
+    if (trimmed.startsWith('{') && !trimmed.endsWith('}')) return false;
+    if (trimmed.startsWith('[') && !trimmed.endsWith(']')) return false;
+    
+    // Count braces and brackets
+    let braceCount = 0;
+    let bracketCount = 0;
+    
+    for (const char of trimmed) {
+      if (char === '{') braceCount++;
+      if (char === '}') braceCount--;
+      if (char === '[') bracketCount++;
+      if (char === ']') bracketCount--;
+    }
+    
+    return braceCount === 0 && bracketCount === 0;
   }
 }
 
