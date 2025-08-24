@@ -3,10 +3,8 @@ import multer from "multer";
 import { extractCVData } from "../services/cvService";
 import { uploadToBlob } from "../services/storageService";
 import Profile from "../models/profile.model";
-import { isAuthenticated } from "../middleware/auth.middleware";
 
 const cvRouter = Router();
-cvRouter.use(isAuthenticated)
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -24,7 +22,6 @@ cvRouter.post("/upload", upload.any() as any, async (req: any, res: any) => {
     }
 
     const cvFile = req.files[0];
-    console.log('File received:', cvFile.originalname, 'Size:', cvFile.size);
     
     const fileUrl = await uploadToBlob(cvFile.buffer, cvFile.originalname);
     
