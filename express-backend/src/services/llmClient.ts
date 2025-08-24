@@ -10,7 +10,7 @@ const client = new AzureOpenAI({
 });
 
 const docClient = DocumentIntelligence(
-  process.env.AZURE_OPENAI_ENDPOINT!,
+  process.env.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT!,
   new AzureKeyCredential(
     process.env.AZURE_DOCUMENT_INTELLIGENCE_KEY!
   )

@@ -36,7 +36,6 @@ Return ONLY this JSON structure:
 No explanations, just JSON.`;
 
     const llmResponse = await callLLM(prompt);
-    
     const cleanResponse = llmResponse.replace(/```json\n?|```\n?/g, '').trim();
     
     try {
