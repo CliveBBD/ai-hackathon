@@ -42,7 +42,6 @@ const profileSchema = new mongoose.Schema({
     currency: { type: String, default: 'USD' }
   },
   profile_score: { type: Number, default: 0, min: 0, max: 100 }
-}, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
