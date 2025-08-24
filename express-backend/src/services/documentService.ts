@@ -23,10 +23,7 @@ interface CVData {
 
 export const processCV = async (fileBuffer: Buffer): Promise<CVData> => {
   try {
-    console.log('Starting CV processing...');
     const extractedText = await extractDocumentText(fileBuffer);
-    console.log('Extracted text preview:', extractedText.substring(0, 200) + '...');
-    
     const prompt = `Extract CV information from this text and return ONLY valid JSON:
 
 ${extractedText}
@@ -60,20 +57,15 @@ Return ONLY this JSON structure:
 No explanations, just JSON.`;
 
     const llmResponse = await callLLM(prompt);
-    console.log('Raw LLM response:', llmResponse);
     const cleanResponse = llmResponse.replace(/```json\n?|```\n?/g, '').trim();
-    console.log('Cleaned response:', cleanResponse);
     
     try {
       const parsedData = JSON.parse(cleanResponse);
-      console.log('Successfully parsed CV data:', parsedData);
       return parsedData;
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
       throw new Error('Failed to parse CV data');
     }
   } catch (error) {
-    console.error('CV processing error:', error);
     throw new Error('Failed to process CV');
   }
 };
