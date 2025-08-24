@@ -11,6 +11,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 dotenv.config();
+import cvRouter from "./routes/cv";
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/prompts", promptsRouter);
 app.use("/auth", authRouter);
+app.use("/cv", cvRouter);
 app.use("/api/profiles", profilesRouter);
 
 export default app;
