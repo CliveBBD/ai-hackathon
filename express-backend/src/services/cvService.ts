@@ -1,15 +1,24 @@
 import { processCV } from './documentService';
 
 interface CVData {
-  name?: string;
-  email?: string;
-  phone?: string;
-  about?: string;
-  github?: string;
-  profile?: string;
+  full_name?: string;
+  bio?: string;
+  linkedin_url?: string;
+  github_url?: string;
+  location?: string;
   skills?: string[];
-  experience?: string[];
-  education?: string[];
+  work_experience?: Array<{
+    company: string;
+    position: string;
+    duration: string;
+    description: string;
+  }>;
+  education?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    year: number;
+  }>;
 }
 
 export const extractCVData = async (file: Express.Multer.File): Promise<CVData> => {

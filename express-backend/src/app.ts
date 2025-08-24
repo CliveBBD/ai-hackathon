@@ -6,6 +6,7 @@ import './config/passport';
 import session from "express-session";
 import MongoStore from 'connect-mongo';
 import authRouter from "./routes/auth";
+import profilesRouter from "./routes/profiles";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -40,5 +41,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/prompts", promptsRouter);
 app.use("/auth", authRouter);
 app.use("/cv", cvRouter);
+app.use("/api/profiles", profilesRouter);
 
 export default app;

@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { extractCVData } from "../services/cvService";
 import { uploadToBlob } from "../services/storageService";
-import { CV } from "../models/CV";
+import Profile from "../models/profile.model";
 
 const cvRouter = Router();
 
@@ -29,20 +29,34 @@ cvRouter.post("/upload", requireAuth, upload.any() as any, async (req: any, res:
     }
 
     const cvFile = req.files[0];
+    console.log('File received:', cvFile.originalname, 'Size:', cvFile.size);
     
     const fileUrl = await uploadToBlob(cvFile.buffer, cvFile.originalname);
+    
     const extractedData = await extractCVData(cvFile);
     
-    const cvDocument = new CV({
-      ...extractedData,
-      fileUrl
-    });
+    const profileUpdate = {
+      full_name: extractedData.full_name,
+      bio: extractedData.bio,
+      linkedin_url: extractedData.linkedin_url,
+      github_url: extractedData.github_url,
+      location: extractedData.location,
+      skills: extractedData.skills?.map(skill => ({ name: skill, level: 80, verified: false })) || [],
+      work_experience: extractedData.work_experience || [],
+      education: extractedData.education || []
+    };
     
-    const savedCV = await cvDocument.save();
+    const userId = req.user?.id || '507f1f77bcf86cd799439011';
+    const updatedProfile = await Profile.findOneAndUpdate(
+      { user_id: userId },
+      { ...profileUpdate, role: 'applicant' },
+      { new: true, upsert: true }
+    );
 
     res.setHeader("Content-Type", "application/json");
-    res.json({ id: savedCV._id, ...extractedData, fileUrl });
+    res.json({ id: updatedProfile._id, ...extractedData, fileUrl });
   } catch (err) {
+    console.error('CV processing error:', err);
     res.status(500).json({ error: "CV processing failed" });
   }
 });
