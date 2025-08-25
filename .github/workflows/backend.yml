@@ -1,7 +1,8 @@
 name: Deploy Backend API
 
 on:
-  workflow_dispatch:
+  push:
+    -branches: [main]
 
 jobs:
   deploy:
