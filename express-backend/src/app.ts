@@ -19,7 +19,7 @@ import cvRouter from "./routes/cv";
 const app = express();
 app.use(express.json());
 
-const allowedOrigins: string[] = [ process.env.FRONTEND! ]
+const allowedOrigins: string[] = [ process.env.FRONTEND!, "http://localhost:3001" ]
 app.use(cors({
   origin: allowedOrigins,
   credentials: true

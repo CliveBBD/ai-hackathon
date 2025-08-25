@@ -85,48 +85,16 @@ class AzureOpenAIService {
       }>;
     }>;
   }> {
-    const prompt = `
-    Based on this candidate's profile and current market trends, recommend skills to improve employability.
-
-    CANDIDATE SKILLS: ${applicant.skills.map(s => `${s.name} (${s.level}%)`).join(', ')}
-    EXPERIENCE LEVEL: ${applicant.experience_level}
-    MARKET TRENDS: ${marketTrends.join(', ')}
-
-    Return JSON with skill recommendations including learning resources:
-    {
-      "recommendations": [
-        {
-          "skill": "skill_name",
-          "priority": "high|medium|low",
-          "reason": "why this skill is important",
-          "resources": [
-            {
-              "title": "resource title",
-              "type": "course|certification|book|tutorial",
-              "provider": "provider name",
-              "url": "optional url",
-              "free": true|false
-            }
-          ]
-        }
-      ]
+    // Return empty recommendations if no data available
+    if (!applicant.skills || applicant.skills.length === 0) {
+      return { recommendations: [] };
     }
-    `;
 
     try {
-      const response = await this.client.chat.completions.create({
-        model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4,
-        max_tokens: 3000,
-      });
-
-      const content = response.choices[0]?.message?.content;
-      if (!content) throw new Error('No response from AI');
-
-      return this.safeJsonParse(content, { recommendations: [] });
+      // Use fallback recommendations instead of AI for now
+      return this.fallbackSkillRecommendations(applicant);
     } catch (error) {
-      console.error('AI skill recommendation error:', error);
+      console.error('Skill recommendation error:', error);
       return { recommendations: [] };
     }
   }
@@ -138,53 +106,66 @@ class AzureOpenAIService {
       reasons: string[];
     }>;
   }> {
-    const prompt = `
-    Recommend the best job matches for this candidate from available positions.
-
-    CANDIDATE:
-    - Skills: ${applicant.skills.map(s => `${s.name} (${s.level}%)`).join(', ')}
-    - Experience: ${applicant.experience_level}
-    - Location: ${applicant.location}
-    - Remote Preference: ${applicant.remote_preference}
-
-    AVAILABLE JOBS:
-    ${availableJobs.map(job => `
-    ID: ${job._id}
-    Title: ${job.title}
-    Skills: ${job.required_skills.join(', ')}
-    Experience: ${job.experience_level}
-    Location: ${job.location}
-    Remote: ${job.remote_option}
-    `).join('\n')}
-
-    Return JSON with top 5 recommendations:
-    {
-      "recommendations": [
-        {
-          "project_id": "job_id",
-          "match_score": number,
-          "reasons": ["reason1", "reason2"]
-        }
-      ]
-    }
-    `;
-
-    try {
-      const response = await this.client.chat.completions.create({
-        model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 1000,
-      });
-
-      const content = response.choices[0]?.message?.content;
-      if (!content) throw new Error('No response from AI');
-
-      return this.safeJsonParse(content, { recommendations: [] });
-    } catch (error) {
-      console.error('AI job recommendation error:', error);
+    // If no jobs available or no applicant skills, return empty
+    if (!availableJobs.length || !applicant.skills.length) {
       return { recommendations: [] };
     }
+
+    try {
+      // Use fallback calculation instead of AI for now
+      return this.fallbackJobRecommendations(applicant, availableJobs);
+    } catch (error) {
+      console.error('Job recommendation error:', error);
+      return { recommendations: [] };
+    }
+  }
+
+  private fallbackSkillRecommendations(applicant: IApplicantProfile) {
+    const recommendations = [
+      {
+        skill: 'Communication',
+        priority: 'high' as const,
+        reason: 'Essential for all professional roles',
+        resources: [
+          {
+            title: 'Effective Communication Course',
+            type: 'course' as const,
+            provider: 'Online Learning',
+            free: true
+          }
+        ]
+      },
+      {
+        skill: 'Problem Solving',
+        priority: 'medium' as const,
+        reason: 'Highly valued by employers',
+        resources: [
+          {
+            title: 'Critical Thinking Guide',
+            type: 'book' as const,
+            provider: 'Learning Resources',
+            free: false
+          }
+        ]
+      }
+    ];
+
+    return { recommendations };
+  }
+
+  private fallbackJobRecommendations(applicant: IApplicantProfile, availableJobs: IProject[]) {
+    const recommendations = availableJobs.map(job => {
+      const matchResult = this.fallbackMatchCalculation(applicant, job);
+      return {
+        project_id: (job._id as any).toString(),
+        match_score: matchResult.score,
+        reasons: matchResult.insights.match_reasons
+      };
+    })
+    .sort((a, b) => b.match_score - a.match_score)
+    .slice(0, 5);
+
+    return { recommendations };
   }
 
   private fallbackMatchCalculation(applicant: IApplicantProfile, project: IProject) {

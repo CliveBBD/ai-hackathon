@@ -55,14 +55,22 @@ export default function ApplicantProfileView() {
   };
 
   const addSkill = () => {
-    if (newSkill.trim() && !profile.skills?.includes(newSkill.trim())) {
-      setProfile({ ...profile, skills: [...(profile.skills || []), newSkill.trim()] });
+    if (newSkill.trim() && !profile.skills?.some((s: any) => (typeof s === 'string' ? s : s.name) === newSkill.trim())) {
+      const newSkillObj = { name: newSkill.trim(), level: 50, verified: false };
+      setProfile({ ...profile, skills: [...(profile.skills || []), newSkillObj] });
       setNewSkill("");
     }
   };
 
-  const removeSkill = (skill: string) => {
-    setProfile({ ...profile, skills: profile.skills?.filter((s: any) => s !== skill) || [] });
+  const removeSkill = (skillToRemove: any) => {
+    const skillName = typeof skillToRemove === 'string' ? skillToRemove : skillToRemove.name;
+    setProfile({ 
+      ...profile, 
+      skills: profile.skills?.filter((s: any) => {
+        const sName = typeof s === 'string' ? s : s.name;
+        return sName !== skillName;
+      }) || [] 
+    });
   };
 
   const addCertification = () => {
@@ -260,15 +268,19 @@ export default function ApplicantProfileView() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {profile.skills?.map((skill: any) => (
-                <Badge key={skill} variant="secondary" className="flex items-center gap-1">
-                  {skill}
-                  <X
-                    className="w-3 h-3 cursor-pointer hover:text-red-500"
-                    onClick={() => removeSkill(skill)}
-                  />
-                </Badge>
-              ))}
+              {profile.skills?.map((skill: any, index: number) => {
+                const skillName = typeof skill === 'string' ? skill : skill.name;
+                const skillKey = typeof skill === 'string' ? skill : skill._id || index;
+                return (
+                  <Badge key={skillKey} variant="secondary" className="flex items-center gap-1">
+                    {skillName}
+                    <X
+                      className="w-3 h-3 cursor-pointer hover:text-red-500"
+                      onClick={() => removeSkill(skill)}
+                    />
+                  </Badge>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useAuth } from "../hooks/useAuth";
+import apiService from "../services/api";
 import {
   LayoutDashboard,
   Briefcase,
@@ -29,7 +31,26 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, userRole, activeView, onViewChange }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await apiService.getUnreadNotificationCount(user!._id);
+      setUnreadCount(data.count);
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  };
 
   const recruiterNavItems = [
     { icon: LayoutDashboard, label: "Overview", view: "overview" },
@@ -115,12 +136,18 @@ export default function DashboardLayout({ children, userRole, activeView, onView
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" className="text-slate-700 hover:bg-slate-100" onClick={() => onViewChange('notifications')}>
               <Bell className="w-5 h-5" />
-              <Badge variant="destructive" className="ml-1 px-1 min-w-[1.25rem] h-5">3</Badge>
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="ml-1 px-1 min-w-[1.25rem] h-5">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
             </Button>
 
             <Avatar className="w-8 h-8">
               <AvatarImage src="/placeholder-avatar.jpg" />
-              <AvatarFallback className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">JD</AvatarFallback>
+              <AvatarFallback className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+              </AvatarFallback>
             </Avatar>
           </div>
         </header>
