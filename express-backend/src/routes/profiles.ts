@@ -110,15 +110,47 @@ router.get('/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    let profile;
+    let profile = null;
     if (user.role === 'applicant') {
-      profile = await ApplicantProfile.findOne({ user_id: user._id }).populate('user_id');
-    } else {
-      profile = await RecruiterProfile.findOne({ user_id: user._id }).populate('user_id');
+      // Check the profiles collection first (where CV upload stores data)
+      const oldProfile = await Profile.findOne({ user_id: user._id, role: 'applicant' });
+      
+      if (oldProfile) {
+        // Transform to match frontend expectations
+        profile = {
+          _id: oldProfile._id,
+          user_id: oldProfile.user_id,
+          bio: oldProfile.bio || '',
+          location: oldProfile.location || 'Not specified',
+          linkedin_url: oldProfile.linkedin_url,
+          github_url: oldProfile.github_url,
+          skills: oldProfile.skills || [],
+          work_experience: oldProfile.work_experience || [],
+          education: oldProfile.education || [],
+          certifications: oldProfile.certifications || [],
+          experience_level: 'entry',
+          preferred_salary: {
+            min: oldProfile.salary_expectation?.min || 0,
+            max: oldProfile.salary_expectation?.max || 0,
+            currency: oldProfile.salary_expectation?.currency || 'ZAR'
+          },
+          availability: oldProfile.availability || 'negotiable',
+          remote_preference: 'flexible',
+          profile_score: oldProfile.profile_score || 0,
+          created_at: oldProfile.created_at,
+          updated_at: oldProfile.updated_at
+        };
+      } else {
+        // Fallback to ApplicantProfile collection
+        profile = await ApplicantProfile.findOne({ user_id: user._id });
+      }
+    } else if (user.role === 'recruiter') {
+      profile = await RecruiterProfile.findOne({ user_id: user._id });
     }
 
     res.json({ user, profile });
   } catch (error) {
+    console.error('Profile fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });

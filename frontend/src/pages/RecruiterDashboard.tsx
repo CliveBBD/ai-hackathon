@@ -408,63 +408,87 @@ export default function RecruiterDashboard() {
     </div>
   );
 
-  const renderAnalyticsView = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-gradient-card">
-          <CardHeader>
-            <CardTitle>Hiring Funnel</CardTitle>
-            <CardDescription>Track your recruitment process</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Applications</span>
-                <span className="font-medium">248</span>
-              </div>
-              <Progress value={100} className="h-2" />
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Reviewed</span>
-                <span className="font-medium">186</span>
-              </div>
-              <Progress value={75} className="h-2" />
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Interviewed</span>
-                <span className="font-medium">42</span>
-              </div>
-              <Progress value={17} className="h-2" />
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Hired</span>
-                <span className="font-medium">8</span>
-              </div>
-              <Progress value={3} className="h-2" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-card">
-          <CardHeader>
-            <CardTitle>Top Skills in Demand</CardTitle>
-            <CardDescription>Most requested skills across your projects</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {['React', 'TypeScript', 'Node.js', 'Python', 'AWS'].map((skill, index) => (
-              <div key={skill} className="flex justify-between items-center">
-                <span className="text-sm">{skill}</span>
-                <div className="flex items-center gap-2">
-                  <Progress value={90 - index * 15} className="h-2 w-20" />
-                  <span className="text-sm font-medium">{90 - index * 15}%</span>
+  const renderAnalyticsView = () => {
+    const totalApplications = candidates.length;
+    const reviewedCount = candidates.filter(c => c.application?.status !== 'pending').length;
+    const interviewedCount = candidates.filter(c => c.application?.status === 'interviewed' || c.application?.status === 'shortlisted').length;
+    const hiredCount = candidates.filter(c => c.application?.status === 'hired').length;
+    
+    // Calculate skill frequency from projects
+    const skillFrequency: { [key: string]: number } = {};
+    projects.forEach(project => {
+      project.required_skills?.forEach((skill: string) => {
+        skillFrequency[skill] = (skillFrequency[skill] || 0) + 1;
+      });
+    });
+    const topSkills = Object.entries(skillFrequency)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5);
+    
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-gradient-card">
+            <CardHeader>
+              <CardTitle>Hiring Funnel</CardTitle>
+              <CardDescription>Track your recruitment process</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Applications</span>
+                  <span className="font-medium">{totalApplications}</span>
                 </div>
+                <Progress value={100} className="h-2" />
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Reviewed</span>
+                  <span className="font-medium">{reviewedCount}</span>
+                </div>
+                <Progress value={totalApplications > 0 ? (reviewedCount / totalApplications) * 100 : 0} className="h-2" />
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Interviewed</span>
+                  <span className="font-medium">{interviewedCount}</span>
+                </div>
+                <Progress value={totalApplications > 0 ? (interviewedCount / totalApplications) * 100 : 0} className="h-2" />
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Hired</span>
+                  <span className="font-medium">{hiredCount}</span>
+                </div>
+                <Progress value={totalApplications > 0 ? (hiredCount / totalApplications) * 100 : 0} className="h-2" />
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-card">
+            <CardHeader>
+              <CardTitle>Top Skills in Demand</CardTitle>
+              <CardDescription>Most requested skills across your projects</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {topSkills.length > 0 ? topSkills.map(([skill, count]) => {
+                const maxCount = Math.max(...Object.values(skillFrequency));
+                const percentage = (count / maxCount) * 100;
+                return (
+                  <div key={skill} className="flex justify-between items-center">
+                    <span className="text-sm">{skill}</span>
+                    <div className="flex items-center gap-2">
+                      <Progress value={percentage} className="h-2 w-20" />
+                      <span className="text-sm font-medium">{count} projects</span>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <p className="text-sm text-muted-foreground">No skills data available</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <DashboardLayout userRole="recruiter" activeView={activeView} onViewChange={setActiveView}>

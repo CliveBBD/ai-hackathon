@@ -30,11 +30,11 @@ class ApiService {
 
   // Auth
   async getCurrentUser() {
-    return this.request('/auth/status');
+    return this.request('/api/auth/status');
   }
 
   async logout() {
-    return this.request('/auth/logout', { method: 'POST' });
+    return this.request('/api/auth/logout', { method: 'POST' });
   }
 
   // Profiles
@@ -61,6 +61,25 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify({ role }),
     });
+  }
+
+  // CV Upload
+  async uploadCV(file: File) {
+    const formData = new FormData();
+    formData.append('cv', file);
+    
+    const response = await fetch(`${API_BASE_URL}/api/cv/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    
+    return await response.json();
   }
 
   // Projects
@@ -110,7 +129,11 @@ class ApiService {
   }
 
   async getJobRecommendations(applicantId: string) {
-    return this.request(`/applications/recommendations/${applicantId}`);
+    return this.request(`/api/applications/recommendations/${applicantId}`);
+  }
+
+  async getApplicantStats(applicantId: string) {
+    return this.request(`/api/applications/stats/${applicantId}`);
   }
 
   async updateApplicationStatus(applicationId: string, status: string, feedback?: string) {

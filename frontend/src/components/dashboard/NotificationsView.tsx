@@ -1,27 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Bell, Calendar,  BookOpen, Briefcase } from "lucide-react";
+import { Bell, Check, Calendar, Star, BookOpen, Briefcase, CheckCircle } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import apiService from "../../services/api";
+import { useToast } from "../../hooks/use-toast";
+
+interface Notification {
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
 
 export default function NotificationsView() {
-  const [notifications, setNotifications] = useState([
-    {
-      _id: '1',
-      type: 'application_status',
-      title: 'Application Status Update',
-      message: 'Your application for Senior React Developer has been reviewed',
-      read: false,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      _id: '2',
-      type: 'interview_scheduled',
-      title: 'Interview Scheduled',
-      message: 'Your interview for Full Stack Developer has been scheduled for tomorrow at 2 PM',
-      read: false,
-      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchNotifications();
     }
-  ]);
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getNotifications(user!._id);
+      setNotifications(data);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -41,10 +62,19 @@ export default function NotificationsView() {
     return `${Math.floor(diffInHours / 24)}d ago`;
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(notifications.map(n => 
-      n._id === notificationId ? { ...n, read: true } : n
-    ));
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await apiService.markNotificationAsRead(notificationId);
+      setNotifications(notifications.map(n => 
+        n._id === notificationId ? { ...n, read: true } : n
+      ));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -59,7 +89,18 @@ export default function NotificationsView() {
       </div>
 
       <div className="space-y-3">
-        {notifications.map((notification) => (
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>No notifications yet</p>
+          </div>
+        ) : (
+          notifications.map((notification) => (
           <Card 
             key={notification._id} 
             className={`cursor-pointer transition-all hover:shadow-md ${
@@ -90,7 +131,8 @@ export default function NotificationsView() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

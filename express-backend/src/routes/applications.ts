@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Application from '../models/Application';
 import Project from '../models/Project';
 import { ApplicantProfile } from '../models/Profile';
@@ -97,6 +98,48 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// Get dashboard statistics for applicant
+router.get('/stats/:applicantId', requireAuth, async (req, res) => {
+  try {
+    const applicantId = req.params.applicantId;
+    
+    // Get applications
+    const applications = await Application.find({ applicant_id: applicantId });
+    const totalApplications = applications.length;
+    
+    // Calculate interviews (interviewed or shortlisted)
+    const interviews = applications.filter(app => 
+      app.status === 'interviewed' || app.status === 'shortlisted'
+    ).length;
+    
+    // Get profile for profile score
+    const profile = await ApplicantProfile.findOne({ user_id: applicantId });
+    const profileScore = profile?.profile_score || 0;
+    
+    // Calculate average skill level
+    const avgSkillLevel = profile?.skills && profile.skills.length > 0 
+      ? Math.round(profile.skills.reduce((sum, s) => sum + s.level, 0) / profile.skills.length)
+      : 0;
+    
+    // Calculate weekly/monthly changes (simplified - in real app would compare with historical data)
+    const weeklyApplications = 0; // Would calculate from date ranges
+    const monthlyProfileIncrease = 0; // Would calculate from historical data
+    
+    res.json({
+      applications: totalApplications,
+      interviews,
+      profileScore,
+      skillsProgress: avgSkillLevel,
+      weeklyApplications,
+      monthlyProfileIncrease,
+      scheduledInterviews: applications.filter(app => app.interview_scheduled).length
+    });
+  } catch (error) {
+    console.error('Stats error:', error);
+    res.status(500).json({ error: 'Failed to get statistics' });
+  }
+});
+
 // Get job recommendations for applicant
 router.get('/recommendations/:applicantId', requireAuth, async (req, res) => {
   try {
@@ -115,16 +158,26 @@ router.get('/recommendations/:applicantId', requireAuth, async (req, res) => {
       activeProjects
     );
 
-    // Enrich with project details
-    const enrichedRecommendations = await Promise.all(
-      recommendations.recommendations.map(async (rec) => {
-        const project = await Project.findById(rec.project_id);
-        return {
-          ...rec,
-          project
-        };
-      })
-    );
+    // Enrich with project details - filter out invalid ObjectIds
+    const enrichedRecommendations = [];
+    for (const rec of recommendations.recommendations) {
+      try {
+        // Check if project_id is a valid ObjectId
+        if (rec.project_id && mongoose.Types.ObjectId.isValid(rec.project_id)) {
+          const project = await Project.findById(rec.project_id);
+          if (project) {
+            enrichedRecommendations.push({
+              ...rec,
+              project
+            });
+          }
+        } else {
+          console.warn('Invalid ObjectId for project:', rec.project_id);
+        }
+      } catch (projectError) {
+        console.warn('Failed to fetch project:', rec.project_id, projectError);
+      }
+    }
 
     res.json({ recommendations: enrichedRecommendations });
   } catch (error) {

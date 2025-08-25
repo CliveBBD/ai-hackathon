@@ -125,6 +125,7 @@ export const useAuth = () => {
     signInWithGoogle,
     createProfile,
     signOut,
+    checkAuthStatus,
     isAuthenticated: !!user,
     hasProfile: !!profile,
   };

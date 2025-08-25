@@ -33,7 +33,7 @@ export default function ApplicantDashboard() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [skillProgress, setSkillProgress] = useState<any[]>([]);
   const [coachingRecommendations, setCoachingRecommendations] = useState<any[]>([]);
-  const [stats, setStats] = useState({ applications: 0, interviews: 0, profileScore: 0, skillsProgress: 0 });
+  const [stats, setStats] = useState({ applications: 0, interviews: 0, profileScore: 0, skillsProgress: 0, weeklyApplications: 0, monthlyProfileIncrease: 0, scheduledInterviews: 0 });
   const [activeView, setActiveView] = useState("overview");
   const [selectedSkill, setSelectedSkill] = useState<any>(null);
   const { toast } = useToast();
@@ -47,51 +47,54 @@ export default function ApplicantDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Get current user
       const currentUser = await apiService.getCurrentUser();
       setUser(currentUser);
 
-      // Get user profile
       const profileData = await apiService.getProfile(currentUser._id);
-      setProfile(profileData.profile);
+      setProfile(profileData.profile || profileData);
 
-      // Get applications
       const applicationsData = await apiService.getApplicantApplications(currentUser._id);
-      setApplications(applicationsData);
+      setApplications(applicationsData || []);
 
-      // Get job recommendations
-      const recommendationsData = await apiService.getJobRecommendations(currentUser._id);
-      setRecommendations(recommendationsData.recommendations || []);
-
-      // Get coaching recommendations
-      const coachingData = await apiService.getCoachingRecommendations(currentUser._id);
-      setCoachingRecommendations(coachingData.recommendations || []);
-
-      // Set skill progress from profile
-      if (profileData.profile?.skills) {
-        setSkillProgress(profileData.profile.skills);
+      try {
+        const recommendationsData = await apiService.getJobRecommendations(currentUser._id);
+        setRecommendations(recommendationsData.recommendations || recommendationsData || []);
+      } catch (recError) {
+        setRecommendations([]);
       }
 
-      // Calculate stats
-      const interviewCount = applicationsData.filter((a: any) => 
-        a.status === 'interviewed' || a.status === 'shortlisted'
-      ).length;
-      
-      const avgSkillLevel = profileData.profile?.skills?.length > 0 
-        ? Math.round(profileData.profile.skills.reduce((sum: number, s: any) => sum + s.level, 0) / profileData.profile.skills.length)
-        : 0;
+      try {
+        const coachingData = await apiService.getCoachingRecommendations(currentUser._id);
+        setCoachingRecommendations(coachingData.recommendations || coachingData || []);
+      } catch (coachError) {
+        setCoachingRecommendations([]);
+      }
 
-      setStats({
-        applications: applicationsData.length,
-        interviews: interviewCount,
-        profileScore: profileData.profile?.profile_score || 0,
-        skillsProgress: avgSkillLevel
-      });
+      const profile = profileData.profile || profileData;
+      if (profile?.skills) {
+        setSkillProgress(profile.skills);
+      }
+
+      // Get dashboard statistics
+      try {
+        const statsData = await apiService.getApplicantStats(currentUser._id);
+        setStats({
+          applications: statsData.applications || 0,
+          interviews: statsData.interviews || 0,
+          profileScore: statsData.profileScore || 0,
+          skillsProgress: statsData.skillsProgress || 0,
+          weeklyApplications: statsData.weeklyApplications || 0,
+          monthlyProfileIncrease: statsData.monthlyProfileIncrease || 0,
+          scheduledInterviews: statsData.scheduledInterviews || 0
+        });
+      } catch (statsError) {
+        setStats({ applications: 0, interviews: 0, profileScore: 0, skillsProgress: 0, weeklyApplications: 0, monthlyProfileIncrease: 0, scheduledInterviews: 0 });
+      }
     } catch (error) {
       console.error('Dashboard data fetch error:', error);
       toast({
         title: "Error",
-        description: "Failed to load dashboard data",
+        description: `Failed to load dashboard data: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -203,7 +206,7 @@ export default function ApplicantDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.applications}</div>
-            <p className="text-xs text-muted-foreground">+3 this week</p>
+            <p className="text-xs text-muted-foreground">{stats.weeklyApplications > 0 ? `+${stats.weeklyApplications} this week` : 'No new applications'}</p>
           </CardContent>
         </Card>
 
@@ -214,7 +217,7 @@ export default function ApplicantDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.interviews}</div>
-            <p className="text-xs text-muted-foreground">2 scheduled</p>
+            <p className="text-xs text-muted-foreground">{stats.scheduledInterviews > 0 ? `${stats.scheduledInterviews} scheduled` : 'None scheduled'}</p>
           </CardContent>
         </Card>
 
@@ -225,7 +228,7 @@ export default function ApplicantDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.profileScore}%</div>
-            <p className="text-xs text-muted-foreground">+5% this month</p>
+            <p className="text-xs text-muted-foreground">{stats.monthlyProfileIncrease > 0 ? `+${stats.monthlyProfileIncrease}% this month` : 'No change this month'}</p>
           </CardContent>
         </Card>
 
@@ -481,8 +484,8 @@ export default function ApplicantDashboard() {
                   </div>
                   <Progress value={skill.level} className="h-2" />
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Target: {skill.target}%</span>
-                    <span>{skill.target - skill.level}% to go</span>
+                    <span>Target: {skill.target || 100}%</span>
+                    <span>{(skill.target || 100) - skill.level}% to go</span>
                   </div>
                 </div>
               </div>

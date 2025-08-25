@@ -5,52 +5,47 @@ import { Badge } from "../components/ui/badge";
 import { useToast } from "../hooks/use-toast";
 import { ArrowLeft, Bell, Check, Calendar, Star, BookOpen, Briefcase, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import apiService from "../services/api";
+
+interface Notification {
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
 
 export default function Notifications() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState([
-    {
-      _id: '1',
-      type: 'application_status',
-      title: 'Application Status Update',
-      message: 'Your application for Senior React Developer has been reviewed',
-      read: false,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      _id: '2',
-      type: 'interview_scheduled',
-      title: 'Interview Scheduled',
-      message: 'Your interview for Full Stack Developer has been scheduled for tomorrow at 2 PM',
-      read: false,
-      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      _id: '3',
-      type: 'skill_coaching',
-      title: 'Skill Improvement Recommendation',
-      message: 'Improve your TypeScript skills to increase your match rate by 12%',
-      read: true,
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      _id: '4',
-      type: 'new_match',
-      title: 'New Job Match Found',
-      message: 'We found a new job that matches your profile: React Native Developer at InnovateLab',
-      read: true,
-      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      _id: '5',
-      type: 'project_update',
-      title: 'Job Posting Updated',
-      message: 'The Senior React Developer position has been updated with new requirements',
-      read: true,
-      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchNotifications();
     }
-  ]);
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getNotifications(user!._id);
+      setNotifications(data);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -83,18 +78,36 @@ export default function Notifications() {
     return date.toLocaleDateString();
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(notifications.map(n => 
-      n._id === notificationId ? { ...n, read: true } : n
-    ));
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await apiService.markNotificationAsRead(notificationId);
+      setNotifications(notifications.map(n => 
+        n._id === notificationId ? { ...n, read: true } : n
+      ));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive"
+      });
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    toast({
-      title: "Success",
-      description: "All notifications marked as read"
-    });
+  const markAllAsRead = async () => {
+    try {
+      await apiService.markAllNotificationsAsRead(user!._id);
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      toast({
+        title: "Success",
+        description: "All notifications marked as read"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -122,7 +135,14 @@ export default function Notifications() {
         </div>
 
         <div className="space-y-3">
-          {notifications.length === 0 ? (
+          {loading ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-lg font-medium mb-2">Loading notifications...</h3>
+              </CardContent>
+            </Card>
+          ) : notifications.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
