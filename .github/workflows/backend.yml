@@ -25,6 +25,9 @@ jobs:
         run: npm run build
         working-directory: ./express-backend
 
+      - name: Copy node modules
+        run: cp -r ./node_modules/ ./express-backend/dist
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
