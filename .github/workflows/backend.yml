@@ -17,7 +17,7 @@ jobs:
           cache-dependency-path: express-backend/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --only=production
         working-directory: ./express-backend
 
       - name: Build application
@@ -28,6 +28,7 @@ jobs:
         run: |
           cp package.json browser/
           cp package-lock.json browser/
+          cp -r node_modules/ browser
         working-directory: ./express-backend
 
       - name: Deploy to Azure Web App
