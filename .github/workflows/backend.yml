@@ -28,7 +28,7 @@ jobs:
         run: |
           cp package.json browser/
           cp package-lock.json browser/
-          cp -r node_modules/ browser
+          cp -r node_modules/ browser/
         working-directory: ./express-backend
 
       - name: Deploy to Azure Web App
