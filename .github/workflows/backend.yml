@@ -17,25 +17,23 @@ jobs:
           cache: 'npm'
           cache-dependency-path: express-backend/package-lock.json
 
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./express-backend
+
       - name: Install esbuild
         run: |
           npm install -g esbuild
           esbuild --version
 
-      # - name: Install dependencies
-      #   run: npm install
-      #   working-directory: ./express-backend
+      - name: Build application
+        run: npm run build
+        working-directory: ./express-backend
 
-      # - name: Build application
-      #   run: npm run build
-      #   working-directory: ./express-backend
-
-      # - name: Copy node modules
-      #   run: cp -r ./express-backend/node_modules/ ./express-backend/dist
-
-      # - name: Deploy to Azure Web App
-      #   uses: azure/webapps-deploy@v3
-      #   with:
-      #     app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-      #     publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-      #     package: ./express-backend/dist
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./express-backend/dist/index.js
