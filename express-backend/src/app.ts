@@ -12,9 +12,9 @@ import projectRoutes from './routes/projects';
 import applicationRoutes from './routes/applications';
 import coachingRoutes from './routes/coaching';
 import notificationRoutes from './routes/notifications';
+import cvRouter from "./routes/cv";
 
 dotenv.config();
-import cvRouter from "./routes/cv";
 
 const app = express();
 app.use(express.json());
@@ -24,6 +24,7 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true
 }));
+app.set("trust proxy", true);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
